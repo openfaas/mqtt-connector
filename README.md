@@ -2,11 +2,17 @@
 
 ## Status
 
-Early prototype.
+This is an early version of an MQTT connector for OpenFaaS. Once configured and deployed, messages on your chosen topic will trigger functions on an OpenFaaS gateway.
 
-The Eclipse provides [a test broker](https://mosquitto.org)
+Prior work:
 
-Eclipse's [paho.mqtt.golang package](https://github.com/eclipse/paho.mqtt.golang) provides the connection to MQTT.
+This is inspired by prior work by [Alex Ellis](https://www.alexellis.io): [Collect, plot and analyse sensor readings from your IoT devices with OpenFaaS](https://github.com/alexellis/iot-sensors-mqtt-openfaas)
+
+Component parts:
+
+* [connector-sdk](https://github.com/openfaas-incubator/connector-sdk/blob/) from OpenFaaS
+* The Eclipse provides [a test broker](https://mosquitto.org)
+* Eclipse's [paho.mqtt.golang package](https://github.com/eclipse/paho.mqtt.golang) provides the connection to MQTT.
 
 ## Usage
 
