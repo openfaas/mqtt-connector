@@ -4,6 +4,8 @@
 
 This is an early version of an MQTT connector for OpenFaaS. Once configured and deployed, messages on your chosen topic will trigger functions on an OpenFaaS gateway.
 
+There are various other connectors available for OpenFaaS which form ["triggers"](https://docs.openfaas.com/reference/triggers/) for event-driven architectures.
+
 Prior work:
 
 This is inspired by prior work by [Alex Ellis](https://www.alexellis.io): [Collect, plot and analyse sensor readings from your IoT devices with OpenFaaS](https://github.com/alexellis/iot-sensors-mqtt-openfaas)
