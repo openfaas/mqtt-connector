@@ -4,6 +4,10 @@
 
 Early prototype.
 
+The Eclipse provides [a test broker](https://mosquitto.org)
+
+Eclipse's [paho.mqtt.golang package](https://github.com/eclipse/paho.mqtt.golang) provides the connection to MQTT.
+
 ## Usage
 
 ```sh
