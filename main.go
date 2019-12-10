@@ -78,7 +78,6 @@ func main() {
 	opts.SetUsername(*user)
 	opts.SetPassword(*password)
 	opts.SetCleanSession(*cleansess)
-	opts.SetStore(MQTT.NewFileStore(":memory:"))
 
 	receiveCount := 0
 	choke := make(chan [2]string)
