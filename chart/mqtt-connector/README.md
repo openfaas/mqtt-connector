@@ -20,6 +20,11 @@ kubectl logs deployment.apps/openfaas-mqtt-connector -n openfaas -f
 
 Configure via `values.yaml`.
 
-<!-- | Parameter                | Description                                                                            | Default                        |
+| Parameter                | Description                                                                            | Example                        |
 | ------------------------ | -------------------------------------------------------------------------------------- | ------------------------------ |
-| `upstream_timeout`       | Maximum timeout for upstream function call, must be a Go formatted duration string.    | `30s`                          | -->
+| `topic`       | A single topic for subscription, install broker once for each topic   | `drone-sensor-update`                          |
+| `broker`       | A TCP address or websocket for the MQTT broker subscription | `tcp://test.mosquitto.org:1883`                          |
+| `clientID`       | An ID to represent this client   | `testgoid`                          |
+| `upstream_timeout`       | Maximum timeout for function as (Golang duration)   | `15s`                          |
+| `rebuild_interval`       | Interval between rebuilding map of functions vs. topics (Golang duration)   | `10s`                          |
+
