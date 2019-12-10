@@ -57,6 +57,9 @@ spec:
           {{- if .Values.authPassword }}
            - "-password={{.Values.authPassword}}"
           {{- end }}
+          {{- if .Values.trimChannelKey }}
+           - "-trim-channel-key={{.Values.trimChannelKey}}"
+          {{- end }}
           env:
             - name: gateway_url
               value: {{ .Values.gateway_url | quote }}

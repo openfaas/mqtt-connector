@@ -1,7 +1,12 @@
-image: alexellis2/mqtt-connector:0.1.4
+image: alexellis2/mqtt-connector:0.1.5
 replicas: 1
 
+# Emitter.io example
+#topic: CHANNEL_KEY/drone-position/?ttl=1200
+
+# Formal MQTT topic example:
 topic: drone-position
+
 # For use with emitter.io
 trimChannelKey: false
 

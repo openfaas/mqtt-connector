@@ -19,10 +19,12 @@ import (
 func main() {
 
 	var gatewayUsername, gatewayPassword, gatewayFlag string
+	var trimChannelKey bool
 
 	flag.StringVar(&gatewayUsername, "gw-username", "", "Username for the gateway")
 	flag.StringVar(&gatewayPassword, "gw-password", "", "Password for gateway")
 	flag.StringVar(&gatewayFlag, "gateway", "", "gateway")
+	flag.BoolVar(&trimChannelKey, "trim-channel-key", false, "Trim channel key when using emitter.io MQTT broker")
 
 	topic := flag.String("topic", "", "The topic name to/from which to publish/subscribe")
 	broker := flag.String("broker", "tcp://iot.eclipse.org:1883", "The broker URI. ex: tcp://10.10.1.1:1883")
@@ -102,12 +104,14 @@ func main() {
 		topic := incoming[0]
 		data := []byte(incoming[1])
 
-		if strings.Contains(incoming[1], "sensor") {
-
-			log.Printf("Invoking (%s) on topic: %q, value: %q\n", gatewayURL, topic, data)
-
-			controller.Invoke(topic, &data)
+		if trimChannelKey {
+			index := strings.Index(topic, "/")
+			topic = topic[index+1:]
 		}
+
+		log.Printf("Invoking (%s) on topic: %q, value: %q\n", gatewayURL, topic, data)
+
+		controller.Invoke(topic, &data)
 
 		receiveCount++
 	}
