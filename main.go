@@ -20,9 +20,9 @@ func main() {
 
 	var gatewayUsername, gatewayPassword, gatewayFlag string
 
-	flag.StringVar(&gatewayUsername, "gw-username", "admin", "username")
-	flag.StringVar(&gatewayPassword, "gw-password", "", "password")
-	flag.StringVar(&gatewayFlag, "gateway", "http://127.0.0.1:8080", "gateway")
+	flag.StringVar(&gatewayUsername, "gw-username", "", "Username for the gateway")
+	flag.StringVar(&gatewayPassword, "gw-password", "", "Password for gateway")
+	flag.StringVar(&gatewayFlag, "gateway", "", "gateway")
 
 	topic := flag.String("topic", "", "The topic name to/from which to publish/subscribe")
 	broker := flag.String("broker", "tcp://iot.eclipse.org:1883", "The broker URI. ex: tcp://10.10.1.1:1883")
@@ -36,7 +36,7 @@ func main() {
 	flag.Parse()
 
 	var creds *auth.BasicAuthCredentials
-	if password != nil && len(*password) > 0 {
+	if len(gatewayPassword) > 0 {
 		creds = &auth.BasicAuthCredentials{
 			User:     gatewayUsername,
 			Password: gatewayPassword,

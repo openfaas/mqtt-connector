@@ -54,6 +54,9 @@ spec:
           {{- if .Values.clientID }}
            - "-id={{.Values.clientID}}"
           {{- end }}
+          {{- if .Values.authPassword }}
+           - "-password={{.Values.authPassword}}"
+          {{- end }}
           env:
             - name: gateway_url
               value: {{ .Values.gateway_url | quote }}
