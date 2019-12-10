@@ -1,0 +1,15 @@
+image: alexellis2/mqtt-connector:0.1.1
+replicas: 1
+
+topic: drone-position
+broker: tcp://test.mosquitto.org:1883
+clientID: testgoid
+
+upstream_timeout: 15s
+rebuild_interval: 10s
+basic_auth: true
+gateway_url: http://gateway.openfaas:8080
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

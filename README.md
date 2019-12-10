@@ -16,7 +16,11 @@ Component parts:
 * The Eclipse provides [a test broker](https://mosquitto.org)
 * Eclipse's [paho.mqtt.golang package](https://github.com/eclipse/paho.mqtt.golang) provides the connection to MQTT.
 
-## Usage
+## Deploy in-cluster with Kubernetes
+
+See [helm chart](chart/mqtt-connector) for deployment instructions. Then continue at "Test the connector".
+
+## Deploy out of cluster
 
 ```sh
 go build
@@ -29,6 +33,8 @@ export GATEWAY_PASS=""
   --broker tcp://test.mosquitto.org:1883 \
   --topic $TOPIC
 ```
+
+## Test the connector
 
 Annotate a function with the annotation `topic: $TOPIC` <- where `$TOPIC` is the MQTT topic you care about.
 

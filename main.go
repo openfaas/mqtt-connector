@@ -18,11 +18,11 @@ import (
 
 func main() {
 
-	var gatewayUsername, gatewayPassword, gateway string
+	var gatewayUsername, gatewayPassword, gatewayFlag string
 
 	flag.StringVar(&gatewayUsername, "gw-username", "admin", "username")
 	flag.StringVar(&gatewayPassword, "gw-password", "", "password")
-	flag.StringVar(&gateway, "gateway", "http://127.0.0.1:8080", "gateway")
+	flag.StringVar(&gatewayFlag, "gateway", "http://127.0.0.1:8080", "gateway")
 
 	topic := flag.String("topic", "", "The topic name to/from which to publish/subscribe")
 	broker := flag.String("broker", "tcp://iot.eclipse.org:1883", "The broker URI. ex: tcp://10.10.1.1:1883")
@@ -35,19 +35,36 @@ func main() {
 
 	flag.Parse()
 
-	creds := &auth.BasicAuthCredentials{
-		User:     gatewayUsername,
-		Password: gatewayPassword,
+	var creds *auth.BasicAuthCredentials
+	if password != nil && len(*password) > 0 {
+		creds = &auth.BasicAuthCredentials{
+			User:     gatewayUsername,
+			Password: gatewayPassword,
+		}
+	} else {
+		creds = types.GetCredentials()
+	}
+
+	gatewayURL := os.Getenv("gateway_url")
+
+	if len(gatewayFlag) > 0 {
+		gatewayURL = gatewayFlag
+	}
+
+	if len(gatewayURL) == 0 {
+		log.Panicln(`a value must be set for env "gatewayURL" or via the -gateway flag for your OpenFaaS gateway`)
+		return
 	}
 
 	config := &types.ControllerConfig{
 		RebuildInterval:   time.Millisecond * 1000,
-		GatewayURL:        gateway,
+		GatewayURL:        gatewayURL,
 		PrintResponse:     true,
 		PrintResponseBody: true,
 	}
 
 	log.Printf("Topic: %s\tBroker: %s\n", *topic, *broker)
+
 	controller := types.NewController(creds, config)
 
 	receiver := ResponseReceiver{}
@@ -88,7 +105,7 @@ func main() {
 
 		if strings.Contains(incoming[1], "sensor") {
 
-			log.Printf("Invoking (%s) on topic: %q, value: %q\n", gateway, topic, data)
+			log.Printf("Invoking (%s) on topic: %q, value: %q\n", gatewayURL, topic, data)
 
 			controller.Invoke(topic, &data)
 		}
