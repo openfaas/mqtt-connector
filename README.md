@@ -53,6 +53,13 @@ This data was generated on the topic `topic` by my NodeMCU device which publishe
 
 A `node12` function named `print-out` returned the temperature as reported.
 
+## Custom builds
+
+```sh
+export NAMESPACE="alexellis2" # Or set your own registry/username
+TAG=0.1.1 make build push
+```
+
 ## License
 
 MIT
