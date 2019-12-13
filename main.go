@@ -105,6 +105,7 @@ func main() {
 		data := []byte(incoming[1])
 
 		if trimChannelKey {
+			log.Printf("Topic before trim: %s\n", topic)
 			index := strings.Index(topic, "/")
 			topic = topic[index+1:]
 		}

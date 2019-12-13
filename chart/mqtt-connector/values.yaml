@@ -1,16 +1,16 @@
-image: alexellis2/mqtt-connector:0.1.5
+image: alexellis2/mqtt-connector:0.1.6
 replicas: 1
 
 # Emitter.io example
-#topic: CHANNEL_KEY/drone-position/?ttl=1200
+topic: i-Xrxb7mpm-bs5LVY3jDU_kcE2XAgnyY/drone-position/
 
 # Formal MQTT topic example:
-topic: drone-position
+#topic: drone-position
 
 # For use with emitter.io
 trimChannelKey: false
 
-broker: tcp://192.168.0.35:8080
+broker: tcp://emitter:8080
 clientID: testgoid
 authPassword: ""
 
