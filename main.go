@@ -33,7 +33,6 @@ func main() {
 	id := flag.String("id", "testgoid", "The ClientID (optional)")
 	cleansess := flag.Bool("clean", false, "Set Clean Session (default false)")
 	qos := flag.Int("qos", 0, "The Quality of Service 0,1,2 (default 0)")
-	num := flag.Int("num", 1000, "The number of messages to publish or subscribe (default 1)")
 
 	flag.Parse()
 
@@ -98,7 +97,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	for receiveCount < *num {
+	for {
 		incoming := <-choke
 
 		topic := incoming[0]
@@ -117,8 +116,7 @@ func main() {
 		receiveCount++
 	}
 
-	client.Disconnect(250)
-	fmt.Println("Sample Subscriber Disconnected")
+	client.Disconnect(1250)
 }
 
 // ResponseReceiver enables connector to receive results from the

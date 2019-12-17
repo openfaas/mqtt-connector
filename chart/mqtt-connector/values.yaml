@@ -1,4 +1,4 @@
-image: alexellis2/mqtt-connector:0.1.6
+image: alexellis2/mqtt-connector:0.2.0
 replicas: 1
 
 # Emitter.io example

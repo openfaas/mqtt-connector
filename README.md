@@ -20,6 +20,10 @@ Component parts:
 
 See [helm chart](chart/mqtt-connector) for deployment instructions. Then continue at "Test the connector".
 
+```sh
+TAG=0.2.0 make build push
+```
+
 ## Deploy out of cluster
 
 ```sh
