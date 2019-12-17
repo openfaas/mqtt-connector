@@ -17,14 +17,19 @@ import (
 )
 
 func main() {
-
-	var gatewayUsername, gatewayPassword, gatewayFlag string
-	var trimChannelKey bool
+	var (
+		gatewayUsername string
+		gatewayPassword string
+		gatewayFlag     string
+		trimChannelKey  bool
+		asyncInvoke     bool
+	)
 
 	flag.StringVar(&gatewayUsername, "gw-username", "", "Username for the gateway")
 	flag.StringVar(&gatewayPassword, "gw-password", "", "Password for gateway")
 	flag.StringVar(&gatewayFlag, "gateway", "", "gateway")
 	flag.BoolVar(&trimChannelKey, "trim-channel-key", false, "Trim channel key when using emitter.io MQTT broker")
+	flag.BoolVar(&asyncInvoke, "async-invoke", false, "Invoke via queueing using NATS and the function's async endpoint")
 
 	topic := flag.String("topic", "", "The topic name to/from which to publish/subscribe")
 	broker := flag.String("broker", "tcp://iot.eclipse.org:1883", "The broker URI. ex: tcp://10.10.1.1:1883")
@@ -58,13 +63,15 @@ func main() {
 	}
 
 	config := &types.ControllerConfig{
-		RebuildInterval:   time.Millisecond * 1000,
-		GatewayURL:        gatewayURL,
-		PrintResponse:     true,
-		PrintResponseBody: true,
+		RebuildInterval:          time.Millisecond * 1000,
+		GatewayURL:               gatewayURL,
+		PrintResponse:            true,
+		PrintResponseBody:        true,
+		TopicAnnotationDelimiter: ",",
+		AsyncFunctionInvocation:  asyncInvoke,
 	}
 
-	log.Printf("Topic: %s\tBroker: %s\n", *topic, *broker)
+	log.Printf("Topic: %s\tBroker: %s\tAsync: %v\n", *topic, *broker, asyncInvoke)
 
 	controller := types.NewController(creds, config)
 

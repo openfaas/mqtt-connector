@@ -60,6 +60,9 @@ spec:
           {{- if .Values.trimChannelKey }}
            - "-trim-channel-key={{.Values.trimChannelKey}}"
           {{- end }}
+          {{- if .Values.asyncInvoke }}
+           - "-async-invoke={{.Values.asyncInvoke}}"
+          {{- end }}
           env:
             - name: gateway_url
               value: {{ .Values.gateway_url | quote }}
