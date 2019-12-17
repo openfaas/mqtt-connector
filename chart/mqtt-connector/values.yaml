@@ -2,7 +2,7 @@ image: alexellis2/mqtt-connector:0.2.1
 replicas: 1
 
 # Emitter.io example
-topic: i-Xrxb7mpm-bs5LVY3jDU_kcE2XAgnyY/drone-position/
+topic: sample-topic/
 
 # Formal MQTT topic example:
 #topic: drone-position
@@ -23,4 +23,3 @@ gateway_url: http://gateway.openfaas:8080
 nodeSelector: {}
 tolerations: []
 affinity: {}
-
