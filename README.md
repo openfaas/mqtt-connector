@@ -1,8 +1,10 @@
 ## mqtt-connector
 
+[![Build Status](https://travis-ci.com/openfaas-incubator/mqtt-connector.svg?branch=master)](https://travis-ci.com/openfaas-incubator/mqtt-connector)
+
 ## Status
 
-This is an early version of an MQTT connector for OpenFaaS. Once configured and deployed, messages on your chosen topic will trigger functions on an OpenFaaS gateway.
+This is an MQTT connector for OpenFaaS. Once configured and deployed it will deliver messages from selected topics to OpenFaaS functions.
 
 There are various other connectors available for OpenFaaS which form ["triggers"](https://docs.openfaas.com/reference/triggers/) for event-driven architectures.
 
