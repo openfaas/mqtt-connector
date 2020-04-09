@@ -1,4 +1,4 @@
-image: alexellis2/mqtt-connector:0.2.1
+image: openfaas/mqtt-connector:0.3.0
 replicas: 1
 
 # Emitter.io example

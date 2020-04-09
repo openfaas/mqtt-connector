@@ -1,27 +1,42 @@
-FROM golang:1.12 as build
+FROM teamserverless/license-check:0.3.6 as license-check
 
-ENV GO111MODULE=off
+FROM golang:1.13 as builder
 ENV CGO_ENABLED=0
+ENV GO111MODULE=off
+
+COPY --from=license-check /license-check /usr/bin/
 
 RUN mkdir -p /go/src/github.com/openfaas-incubator/mqtt-connector
 WORKDIR /go/src/github.com/openfaas-incubator/mqtt-connector
 
-COPY vendor     vendor
-COPY main.go    .
+COPY . .
 
-# Run a gofmt and exclude all vendored code.
-RUN test -z "$(gofmt -l $(find . -type f -name '*.go' -not -path "./vendor/*"))"
+ARG OPTS
+# RUN go mod download
 
+RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
 RUN go test -v ./...
+RUN VERSION=$(git describe --all --exact-match `git rev-parse HEAD` | grep tags | sed 's/tags\///') && \
+  GIT_COMMIT=$(git rev-list -1 HEAD) && \
+  env ${OPTS} CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w \
+  -X github.com/openfaas-incubator/mqtt-connector/pkg/version.Release=${VERSION} \
+  -X github.com/openfaas-incubator/mqtt-connector/pkg/version.SHA=${GIT_COMMIT}" \
+  -a -installsuffix cgo -o inlets-operator . && \
+  addgroup --system app && \
+  adduser --system --ingroup app app && \
+  mkdir /scratch-tmp
 
-# Stripping via -ldflags "-s -w" 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags "-s -w" -installsuffix cgo -o /usr/bin/connector
+# we can't add user in next stage because it's from scratch
+# ca-certificates and tmp folder are also missing in scratch
+# so we add all of it here and copy files in next stage
 
-FROM alpine:3.10 as ship
+FROM scratch
 
-RUN apk add --no-cache ca-certificates
+COPY --from=builder /etc/passwd /etc/group /etc/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder --chown=app:app /scratch-tmp /tmp/
+COPY --from=builder /go/src/github.com/openfaas-incubator/mqtt-connector/inlets-operator .
 
-COPY --from=build /usr/bin/connector /usr/bin/connector
-WORKDIR /root/
+USER app
 
 CMD ["/usr/bin/connector"]
