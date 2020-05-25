@@ -21,7 +21,7 @@ RUN VERSION=$(git describe --all --exact-match `git rev-parse HEAD` | grep tags 
   env ${OPTS} CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w \
   -X github.com/openfaas-incubator/mqtt-connector/pkg/version.Release=${VERSION} \
   -X github.com/openfaas-incubator/mqtt-connector/pkg/version.SHA=${GIT_COMMIT}" \
-  -a -installsuffix cgo -o inlets-operator . && \
+  -a -installsuffix cgo -o connector . && \
   addgroup --system app && \
   adduser --system --ingroup app app && \
   mkdir /scratch-tmp
@@ -35,7 +35,7 @@ FROM scratch
 COPY --from=builder /etc/passwd /etc/group /etc/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder --chown=app:app /scratch-tmp /tmp/
-COPY --from=builder /go/src/github.com/openfaas-incubator/mqtt-connector/inlets-operator .
+COPY --from=builder /go/src/github.com/openfaas-incubator/mqtt-connector/connector /usr/bin/connector
 
 USER app
 
