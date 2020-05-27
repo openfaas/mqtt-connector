@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  mqtt-connector:
+  - apiVersion: v1
+    created: "2020-05-27T14:30:56.405111+01:00"
+    description: Connect OpenFaaS functions to MQTT
+    digest: c3c03ec97ffeb8875e3a61d2eeb2da6629c4ea421e5ad5f249200f18f4374437
+    home: https://www.openfaas.com
+    icon: https://raw.githubusercontent.com/openfaas/media/master/OpenFaaS_logo_stacked_opaque.png
+    keywords:
+    - functions
+    - service
+    - kafka
+    maintainers:
+    - email: alex@openfaas.com
+      name: alexellis
+    - email: roesler.lucas@gmail.com
+      name: lucasroesler
+    name: mqtt-connector
+    sources:
+    - https://github.com/openfaas-incubator/mqtt-connector
+    urls:
+    - https://openfaas-incubator.github.io/mqtt-connector/mqtt-connector-0.3.1.tgz
+    version: 0.3.1
+generated: "2020-05-27T14:30:56.404181+01:00"
