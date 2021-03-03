@@ -1,0 +1,18 @@
+# github.com/eclipse/paho.mqtt.golang v1.2.0
+## explicit
+github.com/eclipse/paho.mqtt.golang
+github.com/eclipse/paho.mqtt.golang/packets
+# github.com/openfaas/connector-sdk v0.0.0-20201220114541-89f0ffcc5448
+## explicit
+github.com/openfaas/connector-sdk/types
+# github.com/openfaas/faas-provider v0.17.1
+## explicit
+github.com/openfaas/faas-provider/auth
+github.com/openfaas/faas-provider/types
+# github.com/pkg/errors v0.9.1
+github.com/pkg/errors
+# golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933
+## explicit
+golang.org/x/net/internal/socks
+golang.org/x/net/proxy
+golang.org/x/net/websocket

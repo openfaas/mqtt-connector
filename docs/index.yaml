@@ -18,8 +18,8 @@ entries:
       name: lucasroesler
     name: mqtt-connector
     sources:
-    - https://github.com/openfaas-incubator/mqtt-connector
+    - https://github.com/openfaas/mqtt-connector
     urls:
-    - https://openfaas-incubator.github.io/mqtt-connector/mqtt-connector-0.3.1.tgz
+    - https://openfaas.github.io/mqtt-connector/mqtt-connector-0.3.1.tgz
     version: 0.3.1
 generated: "2020-05-27T14:30:56.404181+01:00"

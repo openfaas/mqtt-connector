@@ -31,4 +31,4 @@ test:
 charts:
 	cd chart && helm package mqtt-connector
 	mv chart/*.tgz docs/
-	helm repo index docs --url https://openfaas-incubator.github.io/mqtt-connector/ --merge ./docs/index.yaml
+	helm repo index docs --url https://openfaas.github.io/mqtt-connector/ --merge ./docs/index.yaml

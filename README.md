@@ -1,6 +1,6 @@
 ## mqtt-connector
 
-[![Build Status](https://travis-ci.com/openfaas-incubator/mqtt-connector.svg?branch=master)](https://travis-ci.com/openfaas-incubator/mqtt-connector)
+[![Build Status](https://travis-ci.com/openfaas/mqtt-connector.svg?branch=master)](https://travis-ci.com/openfaas/mqtt-connector)
 
 ## Status
 
@@ -14,13 +14,13 @@ This is inspired by prior work by [Alex Ellis](https://www.alexellis.io): [Colle
 
 Component parts:
 
-* [connector-sdk](https://github.com/openfaas-incubator/connector-sdk/blob/) from OpenFaaS
+* [connector-sdk](https://github.com/openfaas/connector-sdk/blob/) from OpenFaaS
 * The Eclipse provides [a test broker](https://mosquitto.org)
 * Eclipse's [paho.mqtt.golang package](https://github.com/eclipse/paho.mqtt.golang) provides the connection to MQTT.
 
 ## Deploy in-cluster with Kubernetes
 
-See [helm chart](chart/mqtt-connector) for deployment instructions. Then continue at "Test the connector".
+See [helm chart](https://github.com/openfaas/faas-netes/tree/master/chart/mqtt-connector) for deployment instructions. Then continue at "Test the connector".
 
 ```sh
 TAG=0.2.0 make build push
@@ -31,14 +31,24 @@ TAG=0.2.0 make build push
 ```sh
 go build
 
-export TOPIC=""
-export GATEWAY_PASS=""
+export GATEWAY_PASSWORD=""
+export BROKER="tcp://test.mosquitto.org:1883"
+export TOPIC="openfaas-sensor-data"
 
-./mqtt-connector --gateway http://192.168.0.35:8080 \
-  --gw-password $GATEWAY_PASS \
-  --broker tcp://test.mosquitto.org:1883 \
+./mqtt-connector --gateway http://127.0.0.1:8080 \
+  --broker $BROKER \
+  --gw-username admin \
+  --gw-password $GATEWAY_PASSWORD \
   --topic $TOPIC
 ```
+
+Deploy a function:
+
+```bash
+faas-cli deploy --name echo --image ghcr.io/openfaas/alpine:latest \
+  --fprocess=cat \
+  --annotation topic="openfaas-sensor-data"
+````
 
 ## Test the connector
 

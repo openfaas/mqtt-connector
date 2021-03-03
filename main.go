@@ -12,7 +12,7 @@ import (
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/openfaas-incubator/connector-sdk/types"
+	"github.com/openfaas/connector-sdk/types"
 	"github.com/openfaas/faas-provider/auth"
 )
 
@@ -23,16 +23,18 @@ func main() {
 		gatewayFlag     string
 		trimChannelKey  bool
 		asyncInvoke     bool
+		topic           string
+		broker          string
 	)
 
-	flag.StringVar(&gatewayUsername, "gw-username", "", "Username for the gateway")
+	flag.StringVar(&gatewayUsername, "gw-username", "admin", "Username for the gateway")
 	flag.StringVar(&gatewayPassword, "gw-password", "", "Password for gateway")
 	flag.StringVar(&gatewayFlag, "gateway", "", "gateway")
 	flag.BoolVar(&trimChannelKey, "trim-channel-key", false, "Trim channel key when using emitter.io MQTT broker")
 	flag.BoolVar(&asyncInvoke, "async-invoke", false, "Invoke via queueing using NATS and the function's async endpoint")
+	flag.StringVar(&topic, "topic", "", "The topic name to/from which to publish/subscribe")
+	flag.StringVar(&broker, "broker", "tcp://test.mosquitto.org:1883", "The broker URI. ex: tcp://test.mosquitto.org:1883")
 
-	topic := flag.String("topic", "", "The topic name to/from which to publish/subscribe")
-	broker := flag.String("broker", "tcp://iot.eclipse.org:1883", "The broker URI. ex: tcp://10.10.1.1:1883")
 	password := flag.String("password", "", "The password (optional)")
 	user := flag.String("user", "", "The User (optional)")
 	id := flag.String("id", "testgoid", "The ClientID (optional)")
@@ -71,7 +73,8 @@ func main() {
 		AsyncFunctionInvocation:  asyncInvoke,
 	}
 
-	log.Printf("Topic: %s\tBroker: %s\tAsync: %v\n", *topic, *broker, asyncInvoke)
+	log.Printf("Topic: %q\tBroker: %q\n", topic, broker)
+	log.Printf("Gateway: %s\tAsync: %v\n", gatewayURL, asyncInvoke)
 
 	controller := types.NewController(creds, config)
 
@@ -81,49 +84,60 @@ func main() {
 	controller.BeginMapBuilder()
 
 	opts := MQTT.NewClientOptions()
-	opts.AddBroker(*broker)
+	opts.AddBroker(broker)
 	opts.SetClientID(*id)
 	opts.SetUsername(*user)
 	opts.SetPassword(*password)
 	opts.SetCleanSession(*cleansess)
 
 	receiveCount := 0
-	choke := make(chan [2]string)
+	msgCh := make(chan [2]string)
 
 	opts.SetDefaultPublishHandler(func(client MQTT.Client, msg MQTT.Message) {
-		choke <- [2]string{msg.Topic(), string(msg.Payload())}
+		log.Printf("Message incoming")
+		msgCh <- [2]string{msg.Topic(), string(msg.Payload())}
+	})
+
+	opts.SetOnConnectHandler(func(client MQTT.Client) {
+		log.Printf("Connected to %s", broker)
+
+		if token := client.Subscribe(topic, byte(*qos), nil); token.Wait() && token.Error() != nil {
+			fmt.Println(token.Error())
+			os.Exit(1)
+		}
+		log.Printf("Subscribed to topic: %s", topic)
 	})
 
 	client := MQTT.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
+	log.Printf("Connection requested for broker: %s", broker)
 
-	if token := client.Subscribe(*topic, byte(*qos), nil); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-		os.Exit(1)
-	}
+	go func() {
+		for {
+			incoming := <-msgCh
 
-	for {
-		incoming := <-choke
+			topic := incoming[0]
+			data := []byte(incoming[1])
 
-		topic := incoming[0]
-		data := []byte(incoming[1])
+			if trimChannelKey {
+				log.Printf("Topic before trim: %s\n", topic)
+				index := strings.Index(topic, "/")
+				topic = topic[index+1:]
+			}
 
-		if trimChannelKey {
-			log.Printf("Topic before trim: %s\n", topic)
-			index := strings.Index(topic, "/")
-			topic = topic[index+1:]
+			log.Printf("Invoking (%s) on topic: %q, value: %q\n", gatewayURL, topic, data)
+
+			controller.Invoke(topic, &data)
+
+			receiveCount++
 		}
 
-		log.Printf("Invoking (%s) on topic: %q, value: %q\n", gatewayURL, topic, data)
+		client.Disconnect(1250)
+	}()
 
-		controller.Invoke(topic, &data)
-
-		receiveCount++
-	}
-
-	client.Disconnect(1250)
+	select {}
 }
 
 // ResponseReceiver enables connector to receive results from the

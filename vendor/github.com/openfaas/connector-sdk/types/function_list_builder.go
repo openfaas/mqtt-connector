@@ -1,4 +1,4 @@
-// Copyright (c) OpenFaaS Project 2018. All rights reserved.
+// Copyright (c) OpenFaaS Author(s) 2019. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 package types
@@ -52,6 +52,10 @@ func (s *FunctionLookupBuilder) getNamespaces() ([]string, error) {
 		bytesOut, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return namespaces, err
+		}
+
+		if len(bytesOut) == 0 {
+			return namespaces, nil
 		}
 
 		err = json.Unmarshal(bytesOut, &namespaces)

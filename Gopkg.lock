@@ -14,7 +14,7 @@
 
 [[projects]]
   digest = "1:f74e36b9c7f0fcf4d73483a71d873672ebc8a309c57c273af7e11f6f4e32654e"
-  name = "github.com/openfaas-incubator/connector-sdk"
+  name = "github.com/openfaas/connector-sdk"
   packages = ["types"]
   pruneopts = "UT"
   revision = "193b73292e32864286853efeccbc5190b5d3c84d"
@@ -56,7 +56,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/eclipse/paho.mqtt.golang",
-    "github.com/openfaas-incubator/connector-sdk/types",
+    "github.com/openfaas/connector-sdk/types",
     "github.com/openfaas/faas-provider/auth",
   ]
   solver-name = "gps-cdcl"
