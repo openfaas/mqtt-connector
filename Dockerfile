@@ -1,42 +1,57 @@
-FROM teamserverless/license-check:0.3.6 as license-check
+FROM teamserverless/license-check:0.3.9 as license-check
 
-FROM golang:1.13 as builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.15 as build
+
+ARG GIT_COMMIT
+ARG VERSION
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+
 ENV CGO_ENABLED=0
-ENV GO111MODULE=off
+ENV GO111MODULE=on
+ENV GOFLAGS=-mod=vendor
+
 
 COPY --from=license-check /license-check /usr/bin/
 
-RUN mkdir -p /go/src/github.com/openfaas/mqtt-connector
 WORKDIR /go/src/github.com/openfaas/mqtt-connector
-
 COPY . .
 
-ARG OPTS
-# RUN go mod download
-
+RUN license-check -path /go/src/github.com/openfaas/mqtt-connector/ --verbose=false "Alex Ellis" "OpenFaaS Author(s)"
 RUN gofmt -l -d $(find . -type f -name '*.go' -not -path "./vendor/*")
-RUN go test -v ./...
-RUN VERSION=$(git describe --all --exact-match `git rev-parse HEAD` | grep tags | sed 's/tags\///') && \
-  GIT_COMMIT=$(git rev-list -1 HEAD) && \
-  env ${OPTS} CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w \
-  -X github.com/openfaas/mqtt-connector/pkg/version.Release=${VERSION} \
-  -X github.com/openfaas/mqtt-connector/pkg/version.SHA=${GIT_COMMIT}" \
-  -a -installsuffix cgo -o connector . && \
-  addgroup --system app && \
-  adduser --system --ingroup app app && \
-  mkdir /scratch-tmp
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go test -v ./...
 
-# we can't add user in next stage because it's from scratch
-# ca-certificates and tmp folder are also missing in scratch
-# so we add all of it here and copy files in next stage
+RUN echo ${GIT_COMMIT} ${VERSION}
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=${CGO_ENABLED} go build \
+        -mod=vendor \
+        --ldflags "-s -w -X 'github.com/openfaas/mqtt-connector/version.GitCommit=${GIT_COMMIT}' -X 'github.com/openfaas/mqtt-connector/version.Version=${VERSION}'" \
+        -a -installsuffix cgo -o mqtt-connector
 
-FROM scratch
+FROM --platform=${TARGETPLATFORM:-linux/amd64} alpine:3.12 as ship
+LABEL org.label-schema.license="MIT" \
+      org.label-schema.vcs-url="https://github.com/openfaas/mqtt-connector" \
+      org.label-schema.vcs-type="Git" \
+      org.label-schema.name="openfaas/mqtt-connector-pro" \
+      org.label-schema.vendor="openfaas" \
+      org.label-schema.docker.schema-version="1.0"
 
-COPY --from=builder /etc/passwd /etc/group /etc/
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder --chown=app:app /scratch-tmp /tmp/
-COPY --from=builder /go/src/github.com/openfaas/mqtt-connector/connector /usr/bin/connector
+RUN apk --no-cache add \
+    ca-certificates
+
+RUN addgroup -S app \
+    && adduser -S -g app app
+
+WORKDIR /home/app
+
+ENV http_proxy      ""
+ENV https_proxy     ""
+
+COPY --from=build /go/src/github.com/openfaas/mqtt-connector/mqtt-connector    /usr/bin/
+RUN chown -R app:app ./
 
 USER app
 
-CMD ["/usr/bin/connector"]
+CMD ["/usr/bin/mqtt-connector"]
