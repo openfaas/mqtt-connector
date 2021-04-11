@@ -25,7 +25,9 @@ jobs:
       - name: Get TAG
         id: get_tag
         run: echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
-
+      - name: Get Repo Owner
+        id: get_repo_owner
+        run: echo ::set-output name=repo_owner::$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')
       - name: Get public key
         id: get_pub_key
         run: echo "PUB_KEY=$(cat key.pub | base64 --wrap 0)" >> $GITHUB_ENV
@@ -55,6 +57,6 @@ jobs:
             GIT_COMMIT=${{env.GIT_COMMIT}}
             VERSION=${{env.VERSION}}
           tags: |
-            ghcr.io/openfaas/mqtt-connector:${{ github.sha }}
-            ghcr.io/openfaas/mqtt-connector:${{ steps.get_tag.outputs.TAG }}
-            ghcr.io/openfaas/mqtt-connector:latest
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/mqtt-connector:${{ steps.get_tag.outputs.TAG }}
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/mqtt-connector:${{ github.sha }}
+            ghcr.io/${{ steps.get_repo_owner.outputs.repo_owner }}/mqtt-connector:latest
