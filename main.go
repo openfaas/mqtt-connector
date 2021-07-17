@@ -53,6 +53,11 @@ func main() {
 		creds = types.GetCredentials()
 	}
 
+	contentType := "application/json"
+	if v, exists := os.LookupEnv("content_type"); exists && len(v) > 0 {
+		contentType = v
+	}
+
 	gatewayURL := os.Getenv("gateway_url")
 
 	if len(gatewayFlag) > 0 {
@@ -71,6 +76,7 @@ func main() {
 		PrintResponseBody:        true,
 		TopicAnnotationDelimiter: ",",
 		AsyncFunctionInvocation:  asyncInvoke,
+		ContentType:              contentType,
 	}
 
 	log.Printf("Topic: %q\tBroker: %q\n", topic, broker)
