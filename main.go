@@ -128,12 +128,12 @@ func main() {
 			data := []byte(incoming[1])
 
 			if trimChannelKey {
-				log.Printf("Topic before trim: %s\n", topic)
+				log.Printf("Topic before trim: %s", topic)
 				index := strings.Index(topic, "/")
 				topic = topic[index+1:]
 			}
 
-			log.Printf("Invoking (%s) on topic: %q, value: %q\n", gatewayURL, topic, data)
+			log.Printf("Invoking (%s) on topic: %q, value: %q", gatewayURL, topic, data)
 
 			controller.Invoke(topic, &data)
 
