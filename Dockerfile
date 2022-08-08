@@ -1,6 +1,6 @@
-FROM teamserverless/license-check:0.3.9 as license-check
+FROM ghcr.io/openfaas/license-check:0.4.0 as license-check
 
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.16 as build
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.18 as build
 
 ARG GIT_COMMIT
 ARG VERSION
