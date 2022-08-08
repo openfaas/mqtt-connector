@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -135,7 +136,7 @@ func main() {
 
 			log.Printf("Invoking (%s) on topic: %q, value: %q", gatewayURL, topic, data)
 
-			controller.Invoke(topic, &data)
+			controller.Invoke(topic, &data, http.Header{})
 
 			receiveCount++
 		}

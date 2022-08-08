@@ -11,14 +11,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/pkg/errors"
+	"time"
 )
 
 // Invoker is used to send requests to functions. Responses are
 // returned via the Responses channel.
 type Invoker struct {
 	PrintResponse bool
+	PrintRequest  bool
 	Client        *http.Client
 	GatewayURL    string
 	ContentType   string
@@ -35,12 +35,14 @@ type InvokerResponse struct {
 	Error    error
 	Topic    string
 	Function string
+	Duration time.Duration
 }
 
 // NewInvoker constructs an Invoker instance
-func NewInvoker(gatewayURL string, client *http.Client, contentType string, printResponse bool) *Invoker {
+func NewInvoker(gatewayURL string, client *http.Client, contentType string, printResponse, printRequest bool) *Invoker {
 	return &Invoker{
 		PrintResponse: printResponse,
+		PrintRequest:  printRequest,
 		Client:        client,
 		GatewayURL:    gatewayURL,
 		ContentType:   contentType,
@@ -49,32 +51,38 @@ func NewInvoker(gatewayURL string, client *http.Client, contentType string, prin
 }
 
 // Invoke triggers a function by accessing the API Gateway
-func (i *Invoker) Invoke(topicMap *TopicMap, topic string, message *[]byte) {
-	i.InvokeWithContext(context.Background(), topicMap, topic, message)
+func (i *Invoker) Invoke(topicMap *TopicMap, topic string, message *[]byte, headers http.Header) {
+	i.InvokeWithContext(context.Background(), topicMap, topic, message, headers)
 }
 
 //InvokeWithContext triggers a function by accessing the API Gateway while propagating context
-func (i *Invoker) InvokeWithContext(ctx context.Context, topicMap *TopicMap, topic string, message *[]byte) {
+func (i *Invoker) InvokeWithContext(ctx context.Context, topicMap *TopicMap, topic string, message *[]byte, headers http.Header) {
 	if len(*message) == 0 {
 		i.Responses <- InvokerResponse{
-			Context: ctx,
-			Error:   fmt.Errorf("no message to send"),
+			Context:  ctx,
+			Error:    fmt.Errorf("no message to send"),
+			Duration: time.Millisecond * 0,
 		}
 	}
 
 	matchedFunctions := topicMap.Match(topic)
 	for _, matchedFunction := range matchedFunctions {
-		log.Printf("Invoke function: %s", matchedFunction)
+		log.Printf("Invoking: %s", matchedFunction)
 
 		gwURL := fmt.Sprintf("%s/%s", i.GatewayURL, matchedFunction)
 		reader := bytes.NewReader(*message)
 
-		body, statusCode, header, doErr := invokefunction(ctx, i.Client, gwURL, i.ContentType, reader)
+		if i.PrintRequest {
+			fmt.Printf("[invoke] %s => %s\n\t%s\n", topic, matchedFunction, string(*message))
+		}
 
-		if doErr != nil {
+		start := time.Now()
+		body, statusCode, header, err := invoke(ctx, i.Client, gwURL, i.ContentType, topic, reader, headers)
+		if err != nil {
 			i.Responses <- InvokerResponse{
-				Context: ctx,
-				Error:   errors.Wrap(doErr, fmt.Sprintf("unable to invoke %s", matchedFunction)),
+				Context:  ctx,
+				Error:    fmt.Errorf("unable to invoke %s, error: %w", matchedFunction, err),
+				Duration: time.Since(start),
 			}
 			continue
 		}
@@ -86,44 +94,58 @@ func (i *Invoker) InvokeWithContext(ctx context.Context, topicMap *TopicMap, top
 			Header:   header,
 			Function: matchedFunction,
 			Topic:    topic,
+			Duration: time.Since(start),
 		}
 	}
 }
 
-func invokefunction(ctx context.Context, c *http.Client, gwURL, contentType string, reader io.Reader) (*[]byte, int, *http.Header, error) {
-
-	httpReq, err := http.NewRequest(http.MethodPost, gwURL, reader)
+func invoke(ctx context.Context, c *http.Client, gwURL, contentType, topic string, reader io.Reader, headers http.Header) (*[]byte, int, *http.Header, error) {
+	req, err := http.NewRequest(http.MethodPost, gwURL, reader)
 	if err != nil {
 		return nil, http.StatusServiceUnavailable, nil, err
 	}
-	httpReq = httpReq.WithContext(ctx)
-
-	if httpReq.Body != nil {
-		defer httpReq.Body.Close()
-	}
 
 	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	if v := req.Header.Get("X-Connector"); v == "" {
+		req.Header.Set("X-Connector", "connector-sdk")
+	}
+
+	if v := req.Header.Get("X-Topic"); v == "" {
+		req.Header.Set("X-Topic", topic)
+	}
+
+	for k, values := range headers {
+		for _, value := range values {
+			req.Header.Add(k, value)
+		}
+	}
+
+	req = req.WithContext(ctx)
+	if req.Body != nil {
+		defer req.Body.Close()
 	}
 
 	var body *[]byte
-
-	res, doErr := c.Do(httpReq)
-	if doErr != nil {
-		return nil, http.StatusServiceUnavailable, nil, doErr
+	res, err := c.Do(req)
+	if err != nil {
+		return nil, http.StatusServiceUnavailable, nil,
+			fmt.Errorf("unable to reach endpoint %s, error: %w", gwURL, err)
 	}
 
 	if res.Body != nil {
 		defer res.Body.Close()
 
-		bytesOut, readErr := ioutil.ReadAll(res.Body)
-		if readErr != nil {
-			log.Printf("Error reading body")
-			return nil, http.StatusServiceUnavailable, nil, doErr
-
+		bytesOut, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return nil, http.StatusServiceUnavailable,
+				nil,
+				fmt.Errorf("unable to read body from response %w", err)
 		}
 		body = &bytesOut
 	}
 
-	return body, res.StatusCode, &res.Header, doErr
+	return body, res.StatusCode, &res.Header, err
 }
