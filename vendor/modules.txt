@@ -12,7 +12,7 @@ github.com/openfaas/connector-sdk/types
 ## explicit; go 1.17
 github.com/openfaas/faas-provider/auth
 github.com/openfaas/faas-provider/types
-# golang.org/x/net v0.7.0
+# golang.org/x/net v0.17.0
 ## explicit; go 1.17
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
